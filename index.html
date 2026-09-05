@@ -208,16 +208,26 @@
         }
     }
 
+    // Fungsi Pengganti backend PHP untuk mengecek status live secara langsung melalui CORS Proxy Client-side
     async function checkMemberLiveViaBackend(memberId, channelId) {
         try {
-            // Endpoint backend serverless Vercel (/api/live-check), karena Vercel tidak menjalankan PHP
-            const response = await fetch(`/api/live-check?channelId=${channelId}`);
+            const targetUrl = `https://www.youtube.com/channel/${channelId}/live`;
+            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+            
+            const response = await fetch(proxyUrl);
             const data = await response.json();
+            const html = data.contents || "";
 
-            if (data.status === 'success' && data.isLive) {
-                if (data.videoId) extractedVideoIds[memberId] = data.videoId;
-                markLiveStatus(memberId, true);
-                return;
+            if (html) {
+                const isLive = html.includes('"isLive":true') || html.includes('{"style":"LIVE"') || html.includes('isLiveContent":true');
+                if (isLive) {
+                    const matches = html.match(/"videoId":"([a-zA-Z0-9_-]{11})"/);
+                    const videoId = matches ? matches[1] : null;
+
+                    if (videoId) extractedVideoIds[memberId] = videoId;
+                    markLiveStatus(memberId, true);
+                    return;
+                }
             }
         } catch (err) {
             console.warn(`[LIVE-CHECK] ${memberId}: Error fetching status`, err);
