@@ -210,8 +210,8 @@
 
     async function checkMemberLiveViaBackend(memberId, channelId) {
         try {
-            // Endpoint backend PHP terpisah (live-check.php), karena file ini murni HTML
-            const response = await fetch(`live-check.php?action=get_live_id&channelId=${channelId}`);
+            // Endpoint backend serverless Vercel (/api/live-check), karena Vercel tidak menjalankan PHP
+            const response = await fetch(`/api/live-check?channelId=${channelId}`);
             const data = await response.json();
 
             if (data.status === 'success' && data.isLive) {
