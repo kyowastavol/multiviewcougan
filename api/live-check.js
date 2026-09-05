@@ -1,7 +1,9 @@
 // ==============================================================================
 // VERCEL SERVERLESS FUNCTION: Cek Akurat Status Live Streaming YouTube
-// Ini adalah versi Node.js dari fungsi PHP checkChannelLiveStatus(),
-// karena Vercel tidak menjalankan PHP. Logikanya persis sama.
+// Versi Node.js dari fungsi PHP checkChannelLiveStatus() (Vercel tidak
+// menjalankan PHP). Deteksi videoId memakai canonical link — jauh lebih
+// akurat dibanding mencari videoId pertama di halaman, yang bisa salah
+// menangkap video rekomendasi/tidak berhubungan dari channel lain.
 // ==============================================================================
 
 export default async function handler(req, res) {
@@ -28,8 +30,9 @@ export default async function handler(req, res) {
         const html = await response.text();
 
         // Sinyal paling akurat: kalau channel sedang live, canonical link
-        // halaman /channel/xxx/live akan mengarah ke watch?v=VIDEOID.
-        // Kalau tidak live, canonical-nya tetap ke halaman channel biasa.
+        // halaman /channel/xxx/live akan mengarah ke watch?v=VIDEOID milik
+        // channel itu sendiri. Kalau tidak live, canonical-nya tetap ke
+        // halaman channel biasa (bukan watch?v=...).
         const canonicalMatch = html.match(
             /<link rel="canonical" href="https:\/\/www\.youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})"/
         );
