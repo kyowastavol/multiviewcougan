@@ -27,19 +27,33 @@ export default async function handler(req, res) {
 
         const html = await response.text();
 
-        const isLive =
+        // Sinyal paling akurat: kalau channel sedang live, canonical link
+        // halaman /channel/xxx/live akan mengarah ke watch?v=VIDEOID.
+        // Kalau tidak live, canonical-nya tetap ke halaman channel biasa.
+        const canonicalMatch = html.match(
+            /<link rel="canonical" href="https:\/\/www\.youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})"/
+        );
+
+        const legacyLiveFlags =
             html.includes('"isLive":true') ||
             html.includes('{"style":"LIVE"') ||
             html.includes('isLiveContent":true');
 
-        if (isLive) {
-            const match = html.match(/"videoId":"([a-zA-Z0-9_-]{11})"/);
-            const videoId = match ? match[1] : null;
-
+        if (canonicalMatch) {
             return res.status(200).json({
                 status: 'success',
                 isLive: true,
-                videoId
+                videoId: canonicalMatch[1]
+            });
+        }
+
+        if (legacyLiveFlags) {
+            // Fallback kalau canonical tidak ketemu tapi ada indikator live lain
+            const fallbackMatch = html.match(/"videoId":"([a-zA-Z0-9_-]{11})"/);
+            return res.status(200).json({
+                status: 'success',
+                isLive: true,
+                videoId: fallbackMatch ? fallbackMatch[1] : null
             });
         }
 
