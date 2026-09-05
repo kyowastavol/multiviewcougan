@@ -198,47 +198,74 @@
         checkAllMembersLiveStatus();
     }
 
-    function checkAllMembersLiveStatus() {
-        for (let memberId in couganMembersData) {
+    async function checkAllMembersLiveStatus() {
+        // Melakukan fetch dengan jeda (staggered) agar proxy tidak terblokir
+        const memberKeys = Object.keys(couganMembersData);
+        for (let i = 0; i < memberKeys.length; i++) {
+            const memberId = memberKeys[i];
             const channelId = couganMembersData[memberId].channelId;
             if (!channelId || channelId.trim() === "" || channelId.includes("UC_ID_CHANNEL_YOUTUBE_")) continue;
-            checkMemberLiveScrape(memberId, channelId);
+            
+            checkMemberLiveRSS(memberId, channelId);
+            // Beri jeda 100ms antarelemen
+            await new Promise(r => setTimeout(r, 100));
         }
     }
 
-    async function checkMemberLiveScrape(memberId, channelId) {
-        // Menggunakan CORS Proxy AllOrigins + Timestamp Cache Busting
-        const targetUrl = `https://www.youtube.com/channel/${channelId}/live`;
-        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}&_=${Date.now()}`;
+    async function checkMemberLiveRSS(memberId, channelId) {
+        // Memakai RSS Feed resmi YouTube + CORS Proxy
+        const rssUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`;
+        const proxyUrl = `https://corsproxy.io/?` + encodeURIComponent(rssUrl);
 
         try {
             const response = await fetch(proxyUrl);
-            const data = await response.json();
+            if (!response.ok) throw new Error("HTTP error " + response.status);
 
-            if (data.contents) {
-                const html = data.contents;
+            const xmlText = await response.text();
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+            
+            const entries = xmlDoc.getElementsByTagName("entry");
+            if (entries.length > 0) {
+                // Ambil video paling baru dari Feed
+                const latestEntry = entries[0];
+                const videoIdNode = latestEntry.getElementsByTagName("yt:videoId")[0];
                 
-                // Cek penanda status Live dari YouTube HTML
-                const isLive = html.includes('"isLive":true') || 
-                               html.includes('{"style":"LIVE"') || 
-                               html.includes('isLiveContent":true');
-
-                if (isLive) {
-                    // Ekstrak Video ID dari HTML
-                    const match = html.match(/"videoId":"([a-zA-Z0-9_-]{11})"/);
-                    if (match && match[1]) {
-                        extractedVideoIds[memberId] = match[1];
+                if (videoIdNode) {
+                    const latestVideoId = videoIdNode.textContent;
+                    // Verifikasi apakah video ini live stream yang aktif lewat thumbnail live resmi
+                    const isLive = await verifyLiveThumbnail(latestVideoId);
+                    
+                    if (isLive) {
+                        extractedVideoIds[memberId] = latestVideoId;
+                        markLiveStatus(memberId, true);
+                        return;
                     }
-                    markLiveStatus(memberId, true);
-                    return;
                 }
             }
         } catch (err) {
-            console.warn(`[SCRAPE-CHECK] Error checking status for ${memberId}`, err);
+            console.warn(`[RSS-CHECK] Gagal memeriksa ${memberId}:`, err);
         }
 
         delete extractedVideoIds[memberId];
         markLiveStatus(memberId, false);
+    }
+
+    function verifyLiveThumbnail(videoId) {
+        return new Promise((resolve) => {
+            const img = new Image();
+            // Gambar hqdefault_live.jpg hanya ada ketika video tersebut live stream aktif
+            img.src = `https://i.ytimg.com/vi/${videoId}/hqdefault_live.jpg?_=${Date.now()}`;
+            img.onload = () => {
+                // YouTube mengembalikan gambar berukuran > 120px jika live sedang berlangsung
+                if (img.width > 120) {
+                    resolve(true);
+                } else {
+                    resolve(false);
+                }
+            };
+            img.onerror = () => resolve(false);
+        });
     }
 
     function markLiveStatus(memberId, isLive) {
@@ -377,8 +404,8 @@
 
     window.addEventListener('DOMContentLoaded', () => {
         generateMemberButtons();
-        // Cek status live berkala setiap 60 detik
-        setInterval(checkAllMembersLiveStatus, 60000);
+        // Cek status live berkala setiap 2 menit
+        setInterval(checkAllMembersLiveStatus, 120000);
     });
     </script>
 </body>
