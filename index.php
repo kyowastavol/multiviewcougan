@@ -154,7 +154,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_live_id') {
     <div class="main-wrapper">
         <div class="top-bar-panel d-flex justify-content-between align-items-center">
             <div class="d-flex align-items-center gap-3">
-                <a class="text-warning text-decoration-none fw-bold small" href="index.html">
+                <a class="text-warning text-decoration-none fw-bold small" href="javascript:void(0)" onclick="window.history.back();">
                     <i class="fas fa-arrow-left me-1"></i> Kembali
                 </a>
                 <span class="fw-bold small text-uppercase" style="color: #e4c662; letter-spacing: 0.5px;">
@@ -262,17 +262,22 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_live_id') {
         checkAllMembersLiveStatus();
     }
 
-    function checkAllMembersLiveStatus() {
-        for (let memberId in couganMembersData) {
+    // Menggunakan antrean (queue) & delay agar server hosting tidak jebol/suspended
+    async function checkAllMembersLiveStatus() {
+        const memberIds = Object.keys(couganMembersData);
+        for (let i = 0; i < memberIds.length; i++) {
+            const memberId = memberIds[i];
             const channelId = couganMembersData[memberId].channelId;
             if (!channelId || channelId.trim() === "" || channelId.includes("UC_ID_CHANNEL_YOUTUBE_")) continue;
-            checkMemberLiveViaBackend(memberId, channelId);
+            
+            await checkMemberLiveViaBackend(memberId, channelId);
+            // Jeda 600ms antar-request untuk menghemat resource hosting
+            await new Promise(resolve => setTimeout(resolve, 600)); 
         }
     }
 
     async function checkMemberLiveViaBackend(memberId, channelId) {
         try {
-            // Menggunakan relative endpoint '?' agar aman jika nama file diubah
             const response = await fetch(`?action=get_live_id&channelId=${channelId}`);
             const data = await response.json();
 
@@ -425,8 +430,8 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_live_id') {
 
     window.addEventListener('DOMContentLoaded', () => {
         generateMemberButtons();
-        // Cek status live berkala setiap 60 detik
-        setInterval(checkAllMembersLiveStatus, 60000);
+        // Cek status live berkala setiap 3 menit (180.000ms) agar tidak boros resource hosting
+        setInterval(checkAllMembersLiveStatus, 180000);
     });
     </script>
 </body>
