@@ -173,6 +173,7 @@
 
     let openedActiveStreams = {};
     let currentLiveList = {};
+    let extractedVideoIds = {};
 
     function generateMemberButtons() {
         const container = document.getElementById('memberButtonsContainer');
@@ -203,24 +204,31 @@
             const channelId = couganMembersData[memberId].channelId;
             if (!channelId || channelId.includes("UC_ID_CHANNEL_YOUTUBE_")) continue;
             
-            checkSingleChannelLive(memberId, channelId);
+            checkInvidiousLive(memberId, channelId);
         }
     }
 
-    function checkSingleChannelLive(memberId, channelId) {
-        // Menggunakan YouTube OEmbed API untuk memverifikasi keaktifan Live
-        const embedUrl = `https://www.youtube.com/embed/live_stream?channel=${channelId}`;
-        const oembedApi = `https://www.youtube.com/oembed?url=${encodeURIComponent(embedUrl)}&format=json`;
-
-        fetch(oembedApi)
-            .then(res => {
-                if (res.ok) {
-                    markLiveStatus(memberId, true);
-                } else {
-                    markLiveStatus(memberId, false);
+    function checkInvidiousLive(memberId, channelId) {
+        // Menggunakan Invidious API public yang ramah CORS dan bebas error 404
+        const invidiousApi = `https://api.invidious.io/instances/1`;
+        
+        // Memakai fallback endpoint publik Invidious yang stabil
+        fetch(`https://inv.tux.pizza/api/v1/channels/${channelId}/videos?sort_by=newest`)
+            .then(res => res.json())
+            .then(data => {
+                if (Array.isArray(data) && data.length > 0) {
+                    // Cari video yang sedang live
+                    const liveVideo = data.find(item => item.isLive === true);
+                    if (liveVideo) {
+                        extractedVideoIds[memberId] = liveVideo.videoId;
+                        markLiveStatus(memberId, true);
+                        return;
+                    }
                 }
+                markLiveStatus(memberId, false);
             })
             .catch(() => {
+                // Fallback: Jika API offline, kembalikan ke penanda standar
                 markLiveStatus(memberId, false);
             });
     }
@@ -291,8 +299,10 @@
             streamContainerCard.id = "wrapper-video-" + memberId;
             streamContainerCard.className = 'col-stream-item transition-all-mv';
 
-            // Menggunakan URL Live Stream bawaan resmi dari YouTube
-            let videoEmbedUrl = `https://www.youtube.com/embed/live_stream?channel=${channelId}&autoplay=1&mute=1`;
+            // Jika ID video terdeteksi dari live, pakai video ID spesifik. Jika tidak, pakai live stream fallback channel
+            let videoEmbedUrl = extractedVideoIds[memberId] 
+                ? `https://www.youtube.com/embed/${extractedVideoIds[memberId]}?autoplay=1&mute=1`
+                : `https://www.youtube.com/embed/live_stream?channel=${channelId}&autoplay=1&mute=1`;
 
             streamContainerCard.innerHTML = `
                 <div class="video-monitor-frame-box d-flex flex-column h-100">
@@ -360,7 +370,7 @@
 
     window.addEventListener('DOMContentLoaded', () => {
         generateMemberButtons();
-        setInterval(checkAllMembersLiveStatus, 60000);
+        setInterval(checkAllMembersLiveStatus, 120000);
     });
     </script>
 </body>
