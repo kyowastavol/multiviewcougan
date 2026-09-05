@@ -173,7 +173,6 @@
 
     let openedActiveStreams = {};
     let currentLiveList = {};
-    let extractedVideoIds = {}; 
 
     function generateMemberButtons() {
         const container = document.getElementById('memberButtonsContainer');
@@ -199,73 +198,31 @@
     }
 
     async function checkAllMembersLiveStatus() {
-        // Melakukan fetch dengan jeda (staggered) agar proxy tidak terblokir
-        const memberKeys = Object.keys(couganMembersData);
-        for (let i = 0; i < memberKeys.length; i++) {
-            const memberId = memberKeys[i];
+        const keys = Object.keys(couganMembersData);
+        for (let memberId of keys) {
             const channelId = couganMembersData[memberId].channelId;
-            if (!channelId || channelId.trim() === "" || channelId.includes("UC_ID_CHANNEL_YOUTUBE_")) continue;
+            if (!channelId || channelId.includes("UC_ID_CHANNEL_YOUTUBE_")) continue;
             
-            checkMemberLiveRSS(memberId, channelId);
-            // Beri jeda 100ms antarelemen
-            await new Promise(r => setTimeout(r, 100));
+            checkSingleChannelLive(memberId, channelId);
         }
     }
 
-    async function checkMemberLiveRSS(memberId, channelId) {
-        // Memakai RSS Feed resmi YouTube + CORS Proxy
-        const rssUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`;
-        const proxyUrl = `https://corsproxy.io/?` + encodeURIComponent(rssUrl);
+    function checkSingleChannelLive(memberId, channelId) {
+        // Menggunakan YouTube OEmbed API untuk memverifikasi keaktifan Live
+        const embedUrl = `https://www.youtube.com/embed/live_stream?channel=${channelId}`;
+        const oembedApi = `https://www.youtube.com/oembed?url=${encodeURIComponent(embedUrl)}&format=json`;
 
-        try {
-            const response = await fetch(proxyUrl);
-            if (!response.ok) throw new Error("HTTP error " + response.status);
-
-            const xmlText = await response.text();
-            const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(xmlText, "text/xml");
-            
-            const entries = xmlDoc.getElementsByTagName("entry");
-            if (entries.length > 0) {
-                // Ambil video paling baru dari Feed
-                const latestEntry = entries[0];
-                const videoIdNode = latestEntry.getElementsByTagName("yt:videoId")[0];
-                
-                if (videoIdNode) {
-                    const latestVideoId = videoIdNode.textContent;
-                    // Verifikasi apakah video ini live stream yang aktif lewat thumbnail live resmi
-                    const isLive = await verifyLiveThumbnail(latestVideoId);
-                    
-                    if (isLive) {
-                        extractedVideoIds[memberId] = latestVideoId;
-                        markLiveStatus(memberId, true);
-                        return;
-                    }
-                }
-            }
-        } catch (err) {
-            console.warn(`[RSS-CHECK] Gagal memeriksa ${memberId}:`, err);
-        }
-
-        delete extractedVideoIds[memberId];
-        markLiveStatus(memberId, false);
-    }
-
-    function verifyLiveThumbnail(videoId) {
-        return new Promise((resolve) => {
-            const img = new Image();
-            // Gambar hqdefault_live.jpg hanya ada ketika video tersebut live stream aktif
-            img.src = `https://i.ytimg.com/vi/${videoId}/hqdefault_live.jpg?_=${Date.now()}`;
-            img.onload = () => {
-                // YouTube mengembalikan gambar berukuran > 120px jika live sedang berlangsung
-                if (img.width > 120) {
-                    resolve(true);
+        fetch(oembedApi)
+            .then(res => {
+                if (res.ok) {
+                    markLiveStatus(memberId, true);
                 } else {
-                    resolve(false);
+                    markLiveStatus(memberId, false);
                 }
-            };
-            img.onerror = () => resolve(false);
-        });
+            })
+            .catch(() => {
+                markLiveStatus(memberId, false);
+            });
     }
 
     function markLiveStatus(memberId, isLive) {
@@ -334,9 +291,8 @@
             streamContainerCard.id = "wrapper-video-" + memberId;
             streamContainerCard.className = 'col-stream-item transition-all-mv';
 
-            let videoEmbedUrl = extractedVideoIds[memberId] 
-                ? "https://www.youtube.com/embed/" + extractedVideoIds[memberId] + "?autoplay=1&mute=1"
-                : "https://www.youtube.com/embed/live_stream?channel=" + channelId + "&autoplay=1&mute=1";
+            // Menggunakan URL Live Stream bawaan resmi dari YouTube
+            let videoEmbedUrl = `https://www.youtube.com/embed/live_stream?channel=${channelId}&autoplay=1&mute=1`;
 
             streamContainerCard.innerHTML = `
                 <div class="video-monitor-frame-box d-flex flex-column h-100">
@@ -349,7 +305,7 @@
                     </div>
 
                     <div class="ratio ratio-16x9">
-                        <iframe src="${videoEmbedUrl}&origin=${encodeURIComponent(window.location.origin)}" 
+                        <iframe src="${videoEmbedUrl}" 
                                 title="${memberId} stream POV" frameborder="0" 
                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
                                 allowfullscreen></iframe>
@@ -404,8 +360,7 @@
 
     window.addEventListener('DOMContentLoaded', () => {
         generateMemberButtons();
-        // Cek status live berkala setiap 2 menit
-        setInterval(checkAllMembersLiveStatus, 120000);
+        setInterval(checkAllMembersLiveStatus, 60000);
     });
     </script>
 </body>
