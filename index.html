@@ -3,8 +3,6 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <meta name="description" content="Pusat Komando Multi-View - Cougan Family" />
-    <meta name="author" content="Cougan" />
     <title>Pusat Komando Multi-View - COUGAN FAMILY</title>
     <link rel="icon" type="image/x-icon" href="assets/img/swag.png" />
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
@@ -204,33 +202,39 @@
         for (let memberId in couganMembersData) {
             const channelId = couganMembersData[memberId].channelId;
             if (!channelId || channelId.trim() === "" || channelId.includes("UC_ID_CHANNEL_YOUTUBE_")) continue;
-            checkMemberLiveViaBackend(memberId, channelId);
+            checkMemberLiveScrape(memberId, channelId);
         }
     }
 
-    // Fungsi Pengganti backend PHP untuk mengecek status live secara langsung melalui CORS Proxy Client-side
-    async function checkMemberLiveViaBackend(memberId, channelId) {
+    async function checkMemberLiveScrape(memberId, channelId) {
+        // Menggunakan CORS Proxy AllOrigins + Timestamp Cache Busting
+        const targetUrl = `https://www.youtube.com/channel/${channelId}/live`;
+        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}&_=${Date.now()}`;
+
         try {
-            const targetUrl = `https://www.youtube.com/channel/${channelId}/live`;
-            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
-            
             const response = await fetch(proxyUrl);
             const data = await response.json();
-            const html = data.contents || "";
 
-            if (html) {
-                const isLive = html.includes('"isLive":true') || html.includes('{"style":"LIVE"') || html.includes('isLiveContent":true');
+            if (data.contents) {
+                const html = data.contents;
+                
+                // Cek penanda status Live dari YouTube HTML
+                const isLive = html.includes('"isLive":true') || 
+                               html.includes('{"style":"LIVE"') || 
+                               html.includes('isLiveContent":true');
+
                 if (isLive) {
-                    const matches = html.match(/"videoId":"([a-zA-Z0-9_-]{11})"/);
-                    const videoId = matches ? matches[1] : null;
-
-                    if (videoId) extractedVideoIds[memberId] = videoId;
+                    // Ekstrak Video ID dari HTML
+                    const match = html.match(/"videoId":"([a-zA-Z0-9_-]{11})"/);
+                    if (match && match[1]) {
+                        extractedVideoIds[memberId] = match[1];
+                    }
                     markLiveStatus(memberId, true);
                     return;
                 }
             }
         } catch (err) {
-            console.warn(`[LIVE-CHECK] ${memberId}: Error fetching status`, err);
+            console.warn(`[SCRAPE-CHECK] Error checking status for ${memberId}`, err);
         }
 
         delete extractedVideoIds[memberId];
