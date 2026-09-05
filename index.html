@@ -68,7 +68,22 @@
         }
         .btn-mv-toggle:hover { border-color: #e4c662; color: #fff; background: #1c2333; }
         .btn-active-mv { border-color: #22c55e !important; background: rgba(34, 197, 94, 0.12) !important; color: #4ade80 !important; }
-        .indicator-dot { width: 8px; height: 8px; border-radius: 50%; background-color: #485162; display: inline-block; flex-shrink: 0; }
+        
+        /* Style Indikator Dot */
+        .indicator-dot { 
+            width: 8px; 
+            height: 8px; 
+            border-radius: 50%; 
+            background-color: #485162; 
+            display: inline-block; 
+            flex-shrink: 0; 
+            transition: all 0.2s ease;
+        }
+        /* Style saat Dot Aktif / Menyala Merah Glowing */
+        .dot-active {
+            background-color: #ef4444 !important;
+            box-shadow: 0 0 8px #ef4444 !important;
+        }
 
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #080a0f; }
@@ -127,39 +142,39 @@
 
     <script>
     const couganMembersData = {
-        dama:     { name: "DAMA",            channelId: "UCRpjWT4pLKSRMIHe1tDt7HA" },
-        kensin:   { name: "kenshin",         channelId: "UC98yFcLYaH3GEamINY8qxPA" },
-        opank21:  { name: "Opank21",         channelId: "UCvX6upG4u79fwNUDPIdYxRQ" },
-        dudung:   { name: "Dudung",          channelId: "UC21jlheq1Md8BQaWrii7V6w" },
-        zoe:      { name: "zoe",             channelId: "UCY06vxuyFJrv3jQ9sDGv3ng" },
-        lucian:   { name: "Lucian",          channelId: "UClBSnB6IovJ_CRdxVlsUPhQ" },
-        gema:     { name: "GEMA",            channelId: "UCsX8qV4bFMBr1hUx77KWcBQ" },
-        senja:    { name: "Senjaa",          channelId: "UCoikWlFCynlX4BGHNM4zJ9A" },
-        tea:      { name: "TayaSoe",         channelId: "UCstdCbpKxb1gG6sB8Dw2SoA" },
-        aurel:    { name: "AurelPermata",    channelId: "UCZ_Tc4r3k_a96vfXCjueijQ" },
-        marukawa: { name: "Marukawa",        channelId: "UCSabDeB5nHLF-U_yWH0biXA" },
-        eko:      { name: "Echoo Z",         channelId: "UCVKPeHmHaL1JVhNtDLp_7Kw" },
-        jin:      { name: "Sungjin",         channelId: "UC0AtYLyIoi0WWdJh39LMCWw" },
-        son:      { name: "Son",             channelId: "UCehXGZb-QhXJC5nNiaZApYQ" },
-        jon:      { name: "Gogon",           channelId: "UC9HzDqyim6jLQWhAPEa7Ftw" },
-        arzey:    { name: "Arzey",           channelId: "UC_XwmfA14Vr4ylVNSgiVETg" },
-        dapip:    { name: "D4vid",           channelId: "UCfhsNj2dfwOZWF1f3DScuzw" },
-        ale:      { name: "Reyksi",          channelId: "UCor8XoxtT_UcuDoQc9I2h4g" },
-        mako:     { name: "Makoto Mitsumi",  channelId: "UCuRG7lrHvyQbZynQ_GF4wgQ" },
-        karael:   { name: "Karael",          channelId: "UC2WV9JpMH-sGap44MjPKEhw" },
-        arlik:    { name: "Arlik",           channelId: "UCqx5bz6iJ61SWGySGuWif6A" },
-        san:      { name: "san",             channelId: "UCqh-kuEkufTLj_4TD6jBJcA" },
-        zein:     { name: "JERC",            channelId: "UC94kuFDI1aGA0S3_ieyDe2A" },
-        ruto:     { name: "ruto",            channelId: "UCQLKF38Mt90jCRfEJHaCtIg" },
-        xavier:   { name: "xavier",          channelId: "UCfP5DDO3yHmiTyDCaf6CKaw" },
-        erlang:   { name: "erlang",          channelId: "UChYf4V1rKht4gPJQkq4a9tg" },
-        juka:     { name: "juka",            channelId: "UC7StJFG0KbDpj4vUZhbBcdA" },
-        udin:     { name: "udin",            channelId: "UC56gJmS_hgxBCHVjsM-J-sA" },
-        mono:     { name: "mono",            channelId: "UCaOGJxIti4JMXdikg_OrDYA" },
-        jarot:    { name: "jarot",           channelId: "UCt3CLF7Q8HZKmaP1E7x-ZMQ" },
-        keny:     { name: "keny",            channelId: "UCe8i18EVpK3h8nGPgSbwolg" },
-        wonka:    { name: "wonka",           channelId: "UCicIVJt17SfJ8LMJ-Ui2fBQ" },
-        mocha:    { name: "mocha",           channelId: "UCHcBf8w8yDgyPnRJh32PTJg" }
+        dama:     { name: "DAMA",           channelId: "UCRpjWT4pLKSRMIHe1tDt7HA" },
+        kensin:   { name: "kenshin",        channelId: "UC98yFcLYaH3GEamINY8qxPA" },
+        opank21:  { name: "Opank21",        channelId: "UCvX6upG4u79fwNUDPIdYxRQ" },
+        dudung:   { name: "Dudung",         channelId: "UC21jlheq1Md8BQaWrii7V6w" },
+        zoe:      { name: "zoe",            channelId: "UCY06vxuyFJrv3jQ9sDGv3ng" },
+        lucian:   { name: "Lucian",         channelId: "UClBSnB6IovJ_CRdxVlsUPhQ" },
+        gema:     { name: "GEMA",           channelId: "UCsX8qV4bFMBr1hUx77KWcBQ" },
+        senja:    { name: "Senjaa",         channelId: "UCoikWlFCynlX4BGHNM4zJ9A" },
+        tea:      { name: "TayaSoe",        channelId: "UCstdCbpKxb1gG6sB8Dw2SoA" },
+        aurel:    { name: "AurelPermata",   channelId: "UCZ_Tc4r3k_a96vfXCjueijQ" },
+        marukawa: { name: "Marukawa",       channelId: "UCSabDeB5nHLF-U_yWH0biXA" },
+        eko:      { name: "Echoo Z",        channelId: "UCVKPeHmHaL1JVhNtDLp_7Kw" },
+        jin:      { name: "Sungjin",        channelId: "UC0AtYLyIoi0WWdJh39LMCWw" },
+        son:      { name: "Son",            channelId: "UCehXGZb-QhXJC5nNiaZApYQ" },
+        jon:      { name: "Gogon",          channelId: "UC9HzDqyim6jLQWhAPEa7Ftw" },
+        arzey:    { name: "Arzey",          channelId: "UC_XwmfA14Vr4ylVNSgiVETg" },
+        dapip:    { name: "D4vid",          channelId: "UCfhsNj2dfwOZWF1f3DScuzw" },
+        ale:      { name: "Reyksi",         channelId: "UCor8XoxtT_UcuDoQc9I2h4g" },
+        mako:     { name: "Makoto Mitsumi", channelId: "UCuRG7lrHvyQbZynQ_GF4wgQ" },
+        karael:   { name: "Karael",         channelId: "UC2WV9JpMH-sGap44MjPKEhw" },
+        arlik:    { name: "Arlik",          channelId: "UCqx5bz6iJ61SWGySGuWif6A" },
+        san:      { name: "san",            channelId: "UCqh-kuEkufTLj_4TD6jBJcA" },
+        zein:     { name: "JERC",           channelId: "UC94kuFDI1aGA0S3_ieyDe2A" },
+        ruto:     { name: "ruto",           channelId: "UCQLKF38Mt90jCRfEJHaCtIg" },
+        xavier:   { name: "xavier",         channelId: "UCfP5DDO3yHmiTyDCaf6CKaw" },
+        erlang:   { name: "erlang",         channelId: "UChYf4V1rKht4gPJQkq4a9tg" },
+        juka:     { name: "juka",           channelId: "UC7StJFG0KbDpj4vUZhbBcdA" },
+        udin:     { name: "udin",           channelId: "UC56gJmS_hgxBCHVjsM-J-sA" },
+        mono:     { name: "mono",           channelId: "UCaOGJxIti4JMXdikg_OrDYA" },
+        jarot:    { name: "jarot",          channelId: "UCt3CLF7Q8HZKmaP1E7x-ZMQ" },
+        keny:     { name: "keny",           channelId: "UCe8i18EVpK3h8nGPgSbwolg" },
+        wonka:    { name: "wonka",          channelId: "UCicIVJt17SfJ8LMJ-Ui2fBQ" },
+        mocha:    { name: "mocha",          channelId: "UCHcBf8w8yDgyPnRJh32PTJg" }
     };
 
     let openedActiveStreams = {};
@@ -218,7 +233,7 @@
 
             if (targetBtn) {
                 targetBtn.className = "btn btn-mv-toggle btn-active-mv";
-                targetBtn.innerHTML = `<span class="indicator-dot" id="dot-${memberId}"></span> Sembunyikan: ${couganMembersData[memberId].name}`;
+                targetBtn.innerHTML = `<span class="indicator-dot dot-active" id="dot-${memberId}"></span> Sembunyikan: ${couganMembersData[memberId].name}`;
             }
 
             const gridLayout = document.getElementById('streamDynamicGridLayout');
