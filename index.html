@@ -18,7 +18,7 @@
     <style>
         :root {
             --bg-dark: #07090e;
-            --panel-bg: rgba(15, 20, 31, 0.75);
+            --panel-bg: rgba(15, 20, 31, 0.85);
             --border-color: rgba(255, 255, 255, 0.08);
             --accent-gold: #f59e0b;
             --accent-glow: rgba(245, 158, 11, 0.25);
@@ -117,7 +117,7 @@
             border-bottom: 1px solid var(--border-color);
         }
 
-        .close-monitor-x-btn {
+        .monitor-action-btn {
             background: rgba(255, 255, 255, 0.08) !important; 
             border: 1px solid rgba(255, 255, 255, 0.1) !important;
             border-radius: 6px; 
@@ -126,10 +126,17 @@
             display: inline-flex; 
             align-items: center;
             justify-content: center; 
-            font-size: 0.9rem !important; 
+            font-size: 0.8rem !important; 
             color: #94a3b8 !important; 
             cursor: pointer; 
             transition: all 0.2s ease;
+        }
+
+        .monitor-action-btn:hover { 
+            background: var(--accent-gold) !important; 
+            color: #000 !important; 
+            border-color: var(--accent-gold) !important;
+            box-shadow: 0 0 10px var(--accent-glow);
         }
 
         .close-monitor-x-btn:hover { 
@@ -173,7 +180,7 @@
             display: grid; 
             grid-template-columns: repeat(auto-fill, minmax(135px, 1fr)); 
             gap: 10px; 
-            max-height: 60vh; 
+            max-height: 55vh; 
             overflow-y: auto; 
             padding-right: 4px; 
         }
@@ -262,6 +269,25 @@
             box-shadow: 0 0 12px var(--accent-glow);
         }
 
+        .btn-filter-live-only {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 8px;
+            padding: 6px 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-filter-live-only.active {
+            background: var(--live-red);
+            color: #fff;
+            border-color: var(--live-red);
+            box-shadow: 0 0 12px var(--live-glow);
+        }
+
         .empty-placeholder-card {
             background: rgba(15, 20, 31, 0.4);
             border: 1px dashed var(--border-color);
@@ -279,7 +305,7 @@
         }
 
         .toast-cyber {
-            background: rgba(15, 20, 31, 0.9);
+            background: rgba(15, 20, 31, 0.95);
             backdrop-filter: blur(16px);
             border: 1px solid var(--accent-gold);
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 15px var(--accent-glow);
@@ -332,9 +358,15 @@
                 </span>
             </div>
             
-            <button class="btn btn-custom-trigger btn-sm px-3 py-2" data-bs-toggle="modal" data-bs-target="#channelModal">
-                <i class="fas fa-th-large me-1"></i> Pilih Channel / POV
-            </button>
+            <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-outline-secondary btn-sm text-white-50 border-opacity-25 px-2 py-1 rounded-2" onclick="toggleAllAudio()" id="btnGlobalMute" title="Mute/Unmute Semua Audio Stream">
+                    <i class="fas fa-volume-mute text-warning" id="globalMuteIcon"></i>
+                </button>
+
+                <button class="btn btn-custom-trigger btn-sm px-3 py-2" data-bs-toggle="modal" data-bs-target="#channelModal">
+                    <i class="fas fa-th-large me-1"></i> Pilih Channel / POV
+                </button>
+            </div>
         </div>
 
         <div id="streamDynamicGridLayout">
@@ -358,9 +390,14 @@
                     <button type="button" class="btn-close btn-close-white opacity-75" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4">
-                    <div class="input-group mb-3">
-                        <span class="input-group-text bg-dark border-secondary border-opacity-25 text-white-50"><i class="fas fa-search"></i></span>
-                        <input type="text" class="form-control search-input" id="searchChannelInput" placeholder="Cari nama member..." onkeyup="filterChannels()">
+                    <div class="d-flex gap-2 mb-3">
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark border-secondary border-opacity-25 text-white-50"><i class="fas fa-search"></i></span>
+                            <input type="text" class="form-control search-input" id="searchChannelInput" placeholder="Cari nama member..." onkeyup="filterChannels()">
+                        </div>
+                        <button class="btn-filter-live-only text-nowrap d-flex align-items-center gap-1" id="btnFilterLiveOnly" onclick="toggleLiveOnlyFilter()">
+                            <i class="fas fa-broadcast-tower"></i> Hanya LIVE
+                        </button>
                     </div>
 
                     <div class="member-grid-modal" id="memberButtonsContainer"></div>
@@ -412,6 +449,8 @@
     let currentLiveList = {};
     let extractedVideoIds = {}; 
     let toastTimeout = null;
+    let filterOnlyLive = false;
+    let globalAudioMuted = true;
 
     function generateMemberButtons() {
         const container = document.getElementById('memberButtonsContainer');
@@ -521,6 +560,14 @@
             }
         }
         updateActiveScannerCount();
+        if (filterOnlyLive) filterChannels();
+    }
+
+    function toggleLiveOnlyFilter() {
+        const btn = document.getElementById('btnFilterLiveOnly');
+        filterOnlyLive = !filterOnlyLive;
+        btn.classList.toggle('active', filterOnlyLive);
+        filterChannels();
     }
 
     function filterChannels() {
@@ -531,8 +578,41 @@
         const buttons = container.getElementsByTagName('button');
 
         for (let i = 0; i < buttons.length; i++) {
+            const memberId = buttons[i].id.replace('btn-', '');
             const btnText = buttons[i].textContent || buttons[i].innerText;
-            buttons[i].style.display = btnText.toLowerCase().indexOf(filter) > -1 ? "flex" : "none";
+            
+            const matchesText = btnText.toLowerCase().indexOf(filter) > -1;
+            const matchesLive = filterOnlyLive ? !!currentLiveList[memberId] : true;
+
+            buttons[i].style.display = (matchesText && matchesLive) ? "flex" : "none";
+        }
+    }
+
+    function toggleAllAudio() {
+        globalAudioMuted = !globalAudioMuted;
+        const icon = document.getElementById('globalMuteIcon');
+        icon.className = globalAudioMuted ? "fas fa-volume-mute text-warning" : "fas fa-volume-up text-success";
+
+        // Mute/Unmute semua iframe aktif
+        for (let memberId in openedActiveStreams) {
+            const iframe = document.querySelector(`#wrapper-video-${memberId} iframe`);
+            if (iframe) {
+                let src = iframe.src;
+                src = globalAudioMuted ? src.replace('&mute=0', '&mute=1') : src.replace('&mute=1', '&mute=0');
+                if (!src.includes('mute=')) src += globalAudioMuted ? '&mute=1' : '&mute=0';
+                iframe.src = src;
+            }
+        }
+    }
+
+    function expandFrame(memberId) {
+        const frame = document.getElementById(`wrapper-video-${memberId}`);
+        if (frame) {
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            } else {
+                frame.requestFullscreen().catch(err => console.log(err));
+            }
         }
     }
 
@@ -575,7 +655,8 @@
             streamContainerCard.id = "wrapper-video-" + memberId;
             streamContainerCard.className = 'col-stream-item transition-all-mv';
 
-            let videoEmbedUrl = `https://www.youtube.com/embed/live_stream?channel=${channelId}&autoplay=1&mute=1`;
+            let muteParam = globalAudioMuted ? "&mute=1" : "&mute=0";
+            let videoEmbedUrl = `https://www.youtube.com/embed/live_stream?channel=${channelId}&autoplay=1${muteParam}`;
 
             streamContainerCard.innerHTML = `
                 <div class="video-monitor-frame-box d-flex flex-column h-100">
@@ -584,7 +665,10 @@
                             <i class="fab fa-youtube text-danger me-1"></i> 
                             LIVE MONITOR: <span class="text-warning">${couganMembersData[memberId].name.toUpperCase()} POV</span>
                         </span>
-                        <button class="close-monitor-x-btn" onclick="closeStreamFrame('${memberId}')">&times;</button>
+                        <div class="d-flex align-items-center gap-1">
+                            <button class="monitor-action-btn" onclick="expandFrame('${memberId}')" title="Fullscreen Monitor"><i class="fas fa-expand"></i></button>
+                            <button class="monitor-action-btn close-monitor-x-btn" onclick="closeStreamFrame('${memberId}')" title="Tutup Stream">&times;</button>
+                        </div>
                     </div>
 
                     <div class="ratio ratio-16x9">
