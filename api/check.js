@@ -16,22 +16,20 @@ export default async function handler(req, res) {
 
     const html = await response.text();
 
-    // 1. Cek apakah ini live stream yang masih terjadwal (upcoming)
-    const isUpcoming = html.includes('"status":"UPCOMING"') || 
-                       html.includes('OFFLINE') || 
-                       html.includes('upcomingEvents');
+    // Cek apakah murni jadwal mendatangkan/upcoming
+    const isScheduled = html.includes('"isUpcoming":true') || html.includes('"upcomingEventData"');
 
-    // 2. Cek indikator live
-    const hasLiveTag = html.includes('"isLive":true') || 
-                       html.includes('{"style":"LIVE"') || 
-                       html.includes('isLiveContent":true');
+    // Cek indikator murni live jalan
+    const isCurrentlyLive = html.includes('"isLive":true') || 
+                            html.includes('"isLiveDvrEnabled":true') || 
+                            html.includes('{"style":"LIVE"');
 
-    // Murni LIVE jika punya tag live DAN BUKAN status jadwal (upcoming)
-    const isLiveNow = hasLiveTag && !isUpcoming;
+    // Nyala merah HANYA KALAU live jalan DAN BUKAN jadwal murni
+    const finalIsLive = isCurrentlyLive && !isScheduled;
 
     return res.status(200).json({
       status: 'success',
-      isLive: isLiveNow
+      isLive: finalIsLive
     });
   } catch (error) {
     return res.status(200).json({ status: 'error', isLive: false });
