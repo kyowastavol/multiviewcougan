@@ -246,7 +246,6 @@
             transform: translateY(-1px);
         }
 
-        /* Empty State Styling */
         .empty-placeholder-card {
             background: rgba(15, 20, 31, 0.4);
             border: 1px dashed var(--border-color);
@@ -265,11 +264,11 @@
     <div class="main-wrapper">
         <div class="top-bar-panel d-flex justify-content-between align-items-center">
             <div class="d-flex align-items-center gap-3">
-                <a class="text-warning text-decoration-none fw-bold small" href="index.html">
-                    <i class="fas fa-arrow-left me-1"></i>
-                </a>
+                <button class="btn btn-outline-warning btn-sm border-opacity-25 px-2 py-1 rounded-2" id="btnRefreshManual" onclick="manualRefreshLiveStatus()" title="Refresh Status Live">
+                    <i class="fas fa-sync-alt text-warning" id="refreshIcon"></i>
+                </button>
                 <span class="fw-bold small text-uppercase brand-badge text-warning d-flex align-items-center gap-2">
-                    <i class="fas fa-satellite-dish fa-spin text-warning"></i>
+                    <i class="fas fa-satellite-dish text-warning"></i>
                     Multi-View SWAG (<span id="activeCountLabel">0</span>/<span id="totalMembersLabel">0</span>)
                 </span>
             </div>
@@ -377,12 +376,29 @@
         checkAllMembersLiveStatus();
     }
 
-    function checkAllMembersLiveStatus() {
+    async function checkAllMembersLiveStatus() {
+        const promises = [];
         for (let memberId in couganMembersData) {
             const channelId = couganMembersData[memberId].channelId;
             if (!channelId || channelId.trim() === "" || channelId.includes("UC_ID_CHANNEL_YOUTUBE_")) continue;
-            checkMemberLiveViaBackend(memberId, channelId);
+            promises.push(checkMemberLiveViaBackend(memberId, channelId));
         }
+        await Promise.allSettled(promises);
+    }
+
+    async function manualRefreshLiveStatus() {
+        const refreshIcon = document.getElementById('refreshIcon');
+        const refreshBtn = document.getElementById('btnRefreshManual');
+        
+        if (refreshIcon) refreshIcon.classList.add('fa-spin');
+        if (refreshBtn) refreshBtn.disabled = true;
+
+        await checkAllMembersLiveStatus();
+
+        setTimeout(() => {
+            if (refreshIcon) refreshIcon.classList.remove('fa-spin');
+            if (refreshBtn) refreshBtn.disabled = false;
+        }, 600);
     }
 
     async function checkMemberLiveViaBackend(memberId, channelId) {
@@ -537,7 +553,7 @@
 
     window.addEventListener('DOMContentLoaded', () => {
         generateMemberButtons();
-        setInterval(checkAllMembersLiveStatus, 60000);
+        // setInterval dimatikan agar tidak spam request otomatis
     });
     </script>
 </body>
