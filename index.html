@@ -293,9 +293,8 @@
             streamContainerCard.id = "wrapper-video-" + memberId;
             streamContainerCard.className = 'col-stream-item transition-all-mv';
 
-            let videoEmbedUrl = extractedVideoIds[memberId] 
-                ? "https://www.youtube.com/embed/" + extractedVideoIds[memberId] + "?autoplay=1&mute=1"
-                : "https://www.youtube.com/embed/live_stream?channel=" + channelId + "&autoplay=1&mute=1";
+            // PAKAI URL NATIVE YOUTUBE LIVE CHANNEL
+            let videoEmbedUrl = `https://www.youtube.com/embed/live_stream?channel=${channelId}&autoplay=1&mute=1`;
 
             streamContainerCard.innerHTML = `
                 <div class="video-monitor-frame-box d-flex flex-column h-100">
@@ -308,7 +307,7 @@
                     </div>
 
                     <div class="ratio ratio-16x9">
-                        <iframe src="${videoEmbedUrl}&origin=${encodeURIComponent(window.location.origin)}" 
+                        <iframe src="${videoEmbedUrl}" 
                                 title="${memberId} stream POV" frameborder="0" 
                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
                                 allowfullscreen></iframe>
