@@ -301,9 +301,8 @@
                     validVideoId = null;
                 }
                 
-                let videoEmbedUrl = validVideoId 
-                    ? "https://www.youtube.com/embed/" + validVideoId + "?autoplay=1&mute=1"
-                    : "https://www.youtube.com/embed/live_stream?channel=" + channelId + "&autoplay=1&mute=1";
+               // Ganti baris penentuan videoEmbedUrl jadi MURNI gini:
+let videoEmbedUrl = `https://www.youtube.com/embed/live_stream?channel=${channelId}&autoplay=1&mute=1`;
 
             streamContainerCard.innerHTML = `
                 <div class="video-monitor-frame-box d-flex flex-column h-100">
