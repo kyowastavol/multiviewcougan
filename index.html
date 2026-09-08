@@ -294,7 +294,9 @@
             streamContainerCard.className = 'col-stream-item transition-all-mv';
 
             // PAKAI URL NATIVE YOUTUBE LIVE CHANNEL
-            let videoEmbedUrl = `https://www.youtube.com/embed/live_stream?channel=${channelId}&autoplay=1&mute=1`;
+            // Di dalam function toggleStreamGrid(memberId):
+
+let videoEmbedUrl = `https://www.youtube.com/embed/live_stream?channel=${channelId}&autoplay=1&mute=1`;
 
             streamContainerCard.innerHTML = `
                 <div class="video-monitor-frame-box d-flex flex-column h-100">
