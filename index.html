@@ -3,12 +3,13 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="description" content="Pusat Komando Multi-View - Cougan Family" />
+    <meta name="author" content="Cougan" />
     <title>Pusat Komando Multi-View - COUGAN FAMILY</title>
     <link rel="icon" type="image/x-icon" href="assets/img/swag.png" />
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
     <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
     
     <style>
         * { box-sizing: border-box; }
@@ -133,232 +134,237 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+
     <script>
-const couganMembersData = {
-    dama:     { name: "DAMA",           channelId: "UCRpjWT4pLKSRMIHe1tDt7HA" },
-    kensin:   { name: "kenshin",        channelId: "UC98yFcLYaH3GEamINY8qxPA" },
-    opank21:  { name: "Opank21",        channelId: "UCvX6upG4u79fwNUDPIdYxRQ" },
-    dudung:   { name: "Dudung",         channelId: "UC21jlheq1Md8BQaWrii7V6w" },
-    zoe:      { name: "zoe",            channelId: "UCY06vxuyFJrv3jQ9sDGv3ng" },
-    lucian:   { name: "Lucian",         channelId: "UClBSnB6IovJ_CRdxVlsUPhQ" },
-    gema:     { name: "GEMA",           channelId: "UCsX8qV4bFMBr1hUx77KWcBQ" },
-    senja:    { name: "Senjaa",         channelId: "UCoikWlFCynlX4BGHNM4zJ9A" },
-    tea:      { name: "TayaSoe",        channelId: "UCstdCbpKxb1gG6sB8Dw2SoA" },
-    aurel:    { name: "AurelPermata",   channelId: "UCZ_Tc4r3k_a96vfXCjueijQ" },
-    marukawa: { name: "Marukawa",       channelId: "UCSabDeB5nHLF-U_yWH0biXA" },
-    eko:      { name: "Echoo Z",        channelId: "UCVKPeHmHaL1JVhNtDLp_7Kw" },
-    jin:      { name: "Sungjin",        channelId: "UC0AtYLyIoi0WWdJh39LMCWw" },
-    son:      { name: "Son",            channelId: "UCehXGZb-QhXJC5nNiaZApYQ" },
-    jon:      { name: "Gogon",          channelId: "UC9HzDqyim6jLQWhAPEa7Ftw" },
-    arzey:    { name: "Arzey",          channelId: "UC_XwmfA14Vr4ylVNSgiVETg" },
-    dapip:    { name: "D4vid",          channelId: "UCfhsNj2dfwOZWF1f3DScuzw" },
-    ale:      { name: "Reyksi",         channelId: "UCor8XoxtT_UcuDoQc9I2h4g" },
-    mako:     { name: "Makoto Mitsumi", channelId: "UCuRG7lrHvyQbZynQ_GF4wgQ" },
-    karael:   { name: "Karael",         channelId: "UC2WV9JpMH-sGap44MjPKEhw" },
-    arlik:    { name: "Arlik",          channelId: "UCqx5bz6iJ61SWGySGuWif6A" },
-    san:      { name: "san",            channelId: "UCqh-kuEkufTLj_4TD6jBJcA" },
-    zein:     { name: "JERC",           channelId: "UC94kuFDI1aGA0S3_ieyDe2A" },
-    ruto:     { name: "ruto",           channelId: "UCQLKF38Mt90jCRfEJHaCtIg" },
-    xavier:   { name: "xavier",         channelId: "UCfP5DDO3yHmiTyDCaf6CKaw" },
-    erlang:   { name: "erlang",         channelId: "UChYf4V1rKht4gPJQkq4a9tg" },
-    juka:     { name: "juka",           channelId: "UC7StJFG0KbDpj4vUZhbBcdA" },
-    udin:     { name: "udin",           channelId: "UC56gJmS_hgxBCHVjsM-J-sA" },
-    mono:     { name: "mono",           channelId: "UCaOGJxIti4JMXdikg_OrDYA" },
-    jarot:    { name: "jarot",          channelId: "UCt3CLF7Q8HZKmaP1E7x-ZMQ" },
-    keny:     { name: "keny",           channelId: "UCe8i18EVpK3h8nGPgSbwolg" },
-    wonka:    { name: "wonka",          channelId: "UCicIVJt17SfJ8LMJ-Ui2fBQ" },
-    mocha:    { name: "mocha",          channelId: "UCHcBf8w8yDgyPnRJh32PTJg" }
-};
-
-let openedActiveStreams = {};
-let currentLiveList = {};
-
-function generateMemberButtons() {
-    const container = document.getElementById('memberButtonsContainer');
-    if (!container) return;
-
-    container.innerHTML = "";
-    const totalMembers = Object.keys(couganMembersData).length;
-
-    const totalLabel = document.getElementById('totalMembersLabel');
-    if (totalLabel) totalLabel.innerText = totalMembers;
-
-    for (let memberId in couganMembersData) {
-        const member = couganMembersData[memberId];
-        const btn = document.createElement('button');
-        btn.id = "btn-" + memberId;
-        btn.className = "btn btn-mv-toggle btn-inactive";
-        btn.onclick = function() { toggleStreamGrid(memberId); };
-        btn.innerHTML = `<span class="indicator-dot" id="dot-${memberId}"></span> ${member.name}`;
-        container.appendChild(btn);
-    }
-
-    checkAllMembersLiveStatus();
-}
-
-// Cek status live menggunakan deteksi Image Native YouTube (Bebas CORS & Tanpa Error 404 Console)
-function checkAllMembersLiveStatus() {
-    const keys = Object.keys(couganMembersData);
-    for (let memberId of keys) {
-        const channelId = couganMembersData[memberId].channelId;
-        if (!channelId) continue;
-        
-        checkLiveByThumbnail(memberId, channelId);
-    }
-}
-
-function checkLiveByThumbnail(memberId, channelId) {
-    const img = new Image();
-    // YouTube membuat URL thumbnail khusus live_stream_hqdefault untuk stream aktif
-    img.src = `https://img.youtube.com/vi/live_stream?channel=${channelId}&t=${Date.now()}`;
-
-    img.onload = function() {
-        // Jika lebar gambar > 120px, stream terdeteksi aktif
-        if (this.width > 120) {
-            markLiveStatus(memberId, true);
-        } else {
-            markLiveStatus(memberId, false);
-        }
+    const couganMembersData = {
+        dama:     { name: "DAMA",           channelId: "UCRpjWT4pLKSRMIHe1tDt7HA" },
+        kensin:   { name: "kenshin",        channelId: "UC98yFcLYaH3GEamINY8qxPA" },
+        opank21:  { name: "Opank21",        channelId: "UCvX6upG4u79fwNUDPIdYxRQ" },
+        dudung:   { name: "Dudung",         channelId: "UC21jlheq1Md8BQaWrii7V6w" },
+        zoe:      { name: "zoe",            channelId: "UCY06vxuyFJrv3jQ9sDGv3ng" },
+        lucian:   { name: "Lucian",         channelId: "UClBSnB6IovJ_CRdxVlsUPhQ" },
+        gema:     { name: "GEMA",           channelId: "UCsX8qV4bFMBr1hUx77KWcBQ" },
+        senja:    { name: "Senjaa",         channelId: "UCoikWlFCynlX4BGHNM4zJ9A" },
+        tea:      { name: "TayaSoe",        channelId: "UCstdCbpKxb1gG6sB8Dw2SoA" },
+        aurel:    { name: "AurelPermata",   channelId: "UCZ_Tc4r3k_a96vfXCjueijQ" },
+        marukawa: { name: "Marukawa",       channelId: "UCSabDeB5nHLF-U_yWH0biXA" },
+        eko:      { name: "Echoo Z",        channelId: "UCVKPeHmHaL1JVhNtDLp_7Kw" },
+        jin:      { name: "Sungjin",        channelId: "UC0AtYLyIoi0WWdJh39LMCWw" },
+        son:      { name: "Son",            channelId: "UCehXGZb-QhXJC5nNiaZApYQ" },
+        jon:      { name: "Gogon",          channelId: "UC9HzDqyim6jLQWhAPEa7Ftw" },
+        arzey:    { name: "Arzey",          channelId: "UC_XwmfA14Vr4ylVNSgiVETg" },
+        dapip:    { name: "D4vid",          channelId: "UCfhsNj2dfwOZWF1f3DScuzw" },
+        ale:      { name: "Reyksi",         channelId: "UCor8XoxtT_UcuDoQc9I2h4g" },
+        mako:     { name: "Makoto Mitsumi", channelId: "UCuRG7lrHvyQbZynQ_GF4wgQ" },
+        karael:   { name: "Karael",         channelId: "UC2WV9JpMH-sGap44MjPKEhw" },
+        arlik:    { name: "Arlik",          channelId: "UCqx5bz6iJ61SWGySGuWif6A" },
+        san:      { name: "san",            channelId: "UCqh-kuEkufTLj_4TD6jBJcA" },
+        zein:     { name: "JERC",           channelId: "UC94kuFDI1aGA0S3_ieyDe2A" },
+        ruto:     { name: "ruto",           channelId: "UCQLKF38Mt90jCRfEJHaCtIg" },
+        xavier:   { name: "xavier",         channelId: "UCfP5DDO3yHmiTyDCaf6CKaw" },
+        erlang:   { name: "erlang",         channelId: "UChYf4V1rKht4gPJQkq4a9tg" },
+        juka:     { name: "juka",           channelId: "UC7StJFG0KbDpj4vUZhbBcdA" },
+        udin:     { name: "udin",           channelId: "UC56gJmS_hgxBCHVjsM-J-sA" },
+        mono:     { name: "mono",           channelId: "UCaOGJxIti4JMXdikg_OrDYA" },
+        jarot:    { name: "jarot",          channelId: "UCt3CLF7Q8HZKmaP1E7x-ZMQ" },
+        keny:     { name: "keny",           channelId: "UCe8i18EVpK3h8nGPgSbwolg" },
+        wonka:    { name: "wonka",          channelId: "UCicIVJt17SfJ8LMJ-Ui2fBQ" },
+        mocha:    { name: "mocha",          channelId: "UCHcBf8w8yDgyPnRJh32PTJg" }
     };
 
-    img.onerror = function() {
+    let openedActiveStreams = {};
+    let currentLiveList = {};
+    let extractedVideoIds = {}; 
+
+    function generateMemberButtons() {
+        const container = document.getElementById('memberButtonsContainer');
+        if (!container) return;
+
+        container.innerHTML = "";
+        const totalMembers = Object.keys(couganMembersData).length;
+
+        const totalLabel = document.getElementById('totalMembersLabel');
+        if (totalLabel) totalLabel.innerText = totalMembers;
+
+        for (let memberId in couganMembersData) {
+            const member = couganMembersData[memberId];
+            const btn = document.createElement('button');
+            btn.id = "btn-" + memberId;
+            btn.className = "btn btn-mv-toggle btn-inactive";
+            btn.onclick = function() { toggleStreamGrid(memberId); };
+            btn.innerHTML = `<span class="indicator-dot" id="dot-${memberId}"></span> ${member.name}`;
+            container.appendChild(btn);
+        }
+
+        checkAllMembersLiveStatus();
+    }
+
+    function checkAllMembersLiveStatus() {
+        for (let memberId in couganMembersData) {
+            const channelId = couganMembersData[memberId].channelId;
+            if (!channelId || channelId.trim() === "" || channelId.includes("UC_ID_CHANNEL_YOUTUBE_")) continue;
+            checkMemberLiveViaBackend(memberId, channelId);
+        }
+    }
+
+    async function checkMemberLiveViaBackend(memberId, channelId) {
+        try {
+            // Memanggil Vercel Serverless Function Node.js
+            const response = await fetch(`/api/check?channelId=${channelId}`);
+            const data = await response.json();
+
+            if (data.status === 'success' && data.isLive) {
+                if (data.videoId) extractedVideoIds[memberId] = data.videoId;
+                markLiveStatus(memberId, true);
+                return;
+            }
+        } catch (err) {
+            console.warn(`[LIVE-CHECK] ${memberId}: Error fetching status`, err);
+        }
+
+        delete extractedVideoIds[memberId];
         markLiveStatus(memberId, false);
-    };
-}
+    }
 
-function markLiveStatus(memberId, isLive) {
-    const targetDot = document.getElementById("dot-" + memberId);
-    if (targetDot) {
-        if (isLive) {
-            targetDot.classList.add("dot-live-red");
-            currentLiveList[memberId] = true;
+    function markLiveStatus(memberId, isLive) {
+        const targetDot = document.getElementById("dot-" + memberId);
+        if (targetDot) {
+            if (isLive) {
+                targetDot.classList.add("dot-live-red");
+                currentLiveList[memberId] = true;
+            } else {
+                targetDot.classList.remove("dot-live-red");
+                delete currentLiveList[memberId];
+            }
+        }
+        updateActiveScannerCount();
+    }
+
+    function filterChannels() {
+        const input = document.getElementById('searchChannelInput');
+        if (!input) return;
+        const filter = input.value.toLowerCase();
+        const container = document.getElementById('memberButtonsContainer');
+        const buttons = container.getElementsByTagName('button');
+
+        for (let i = 0; i < buttons.length; i++) {
+            const btnText = buttons[i].textContent || buttons[i].innerText;
+            buttons[i].style.display = btnText.toLowerCase().indexOf(filter) > -1 ? "flex" : "none";
+        }
+    }
+
+    function updateActiveScannerCount() {
+        const activeCountLabel = document.getElementById('activeCountLabel');
+        if (!activeCountLabel) return;
+
+        const currentOpenedCount = Object.keys(openedActiveStreams).length;
+        if (currentOpenedCount > 0) {
+            activeCountLabel.innerText = currentOpenedCount;
+            return;
+        }
+
+        const totalLiveRedDots = Object.keys(currentLiveList).length;
+        activeCountLabel.innerText = totalLiveRedDots;
+    }
+
+    function toggleStreamGrid(memberId) {
+        const targetBtn = document.getElementById("btn-" + memberId);
+        const channelId = couganMembersData[memberId].channelId;
+
+        if (!channelId || channelId.includes("UC_ID_CHANNEL_YOUTUBE_")) {
+            alert("ID Channel untuk " + couganMembersData[memberId].name + " belum disetel.");
+            return;
+        }
+
+        if (!openedActiveStreams[memberId]) {
+            openedActiveStreams[memberId] = true;
+
+            if (targetBtn) {
+                targetBtn.className = "btn btn-mv-toggle btn-active-mv";
+                let isLiveNow = currentLiveList[memberId] ? "dot-live-red" : "";
+                targetBtn.innerHTML = `<span class="indicator-dot ${isLiveNow}" id="dot-${memberId}"></span> Sembunyikan: ${couganMembersData[memberId].name}`;
+            }
+
+            const gridLayout = document.getElementById('streamDynamicGridLayout');
+            const placeholder = document.getElementById('emptyGridPlaceholder');
+
+            const streamContainerCard = document.createElement('div');
+            streamContainerCard.id = "wrapper-video-" + memberId;
+            streamContainerCard.className = 'col-stream-item transition-all-mv';
+
+            let videoEmbedUrl = extractedVideoIds[memberId] 
+                ? "https://www.youtube.com/embed/" + extractedVideoIds[memberId] + "?autoplay=1&mute=1"
+                : "https://www.youtube.com/embed/live_stream?channel=" + channelId + "&autoplay=1&mute=1";
+
+            streamContainerCard.innerHTML = `
+                <div class="video-monitor-frame-box d-flex flex-column h-100">
+                    <div class="monitor-header-bar d-flex justify-content-between align-items-center">
+                        <span class="small fw-bold tracking-luxury">
+                            <i class="fab fa-youtube text-danger me-1"></i> 
+                            LIVE MONITOR: ${couganMembersData[memberId].name.toUpperCase()} POV
+                        </span>
+                        <button class="close-monitor-x-btn" onclick="closeStreamFrame('${memberId}')">&times;</button>
+                    </div>
+
+                    <div class="ratio ratio-16x9">
+                        <iframe src="${videoEmbedUrl}&origin=${encodeURIComponent(window.location.origin)}" 
+                                title="${memberId} stream POV" frameborder="0" 
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                allowfullscreen></iframe>
+                    </div>
+                </div>
+            `;
+
+            if (placeholder) placeholder.style.display = 'none';
+            gridLayout.appendChild(streamContainerCard);
         } else {
-            targetDot.classList.remove("dot-live-red");
-            delete currentLiveList[memberId];
+            closeStreamFrame(memberId);
         }
-    }
-    updateActiveScannerCount();
-}
 
-function filterChannels() {
-    const input = document.getElementById('searchChannelInput');
-    if (!input) return;
-    const filter = input.value.toLowerCase();
-    const container = document.getElementById('memberButtonsContainer');
-    const buttons = container.getElementsByTagName('button');
-
-    for (let i = 0; i < buttons.length; i++) {
-        const btnText = buttons[i].textContent || buttons[i].innerText;
-        buttons[i].style.display = btnText.toLowerCase().indexOf(filter) > -1 ? "flex" : "none";
-    }
-}
-
-function updateActiveScannerCount() {
-    const activeCountLabel = document.getElementById('activeCountLabel');
-    if (!activeCountLabel) return;
-
-    const currentOpenedCount = Object.keys(openedActiveStreams).length;
-    if (currentOpenedCount > 0) {
-        activeCountLabel.innerText = currentOpenedCount;
-        return;
+        recalculateGridResponsiveness();
     }
 
-    const totalLiveRedDots = Object.keys(currentLiveList).length;
-    activeCountLabel.innerText = totalLiveRedDots;
-}
+    function closeStreamFrame(memberId) {
+        if (openedActiveStreams[memberId]) delete openedActiveStreams[memberId];
 
-function toggleStreamGrid(memberId) {
-    const targetBtn = document.getElementById("btn-" + memberId);
-    const channelId = couganMembersData[memberId].channelId;
+        const targetVideoFrame = document.getElementById("wrapper-video-" + memberId);
+        if (targetVideoFrame) targetVideoFrame.remove();
 
-    if (!channelId) return;
-
-    if (!openedActiveStreams[memberId]) {
-        openedActiveStreams[memberId] = true;
-
+        const targetBtn = document.getElementById("btn-" + memberId);
         if (targetBtn) {
-            targetBtn.className = "btn btn-mv-toggle btn-active-mv";
+            targetBtn.className = "btn btn-mv-toggle btn-inactive";
             let isLiveNow = currentLiveList[memberId] ? "dot-live-red" : "";
-            targetBtn.innerHTML = `<span class="indicator-dot ${isLiveNow}" id="dot-${memberId}"></span> Sembunyikan: ${couganMembersData[memberId].name}`;
+            targetBtn.innerHTML = `<span class="indicator-dot ${isLiveNow}" id="dot-${memberId}"></span> ${couganMembersData[memberId].name}`;
         }
 
+        recalculateGridResponsiveness();
+    }
+
+    function recalculateGridResponsiveness() {
         const gridLayout = document.getElementById('streamDynamicGridLayout');
         const placeholder = document.getElementById('emptyGridPlaceholder');
 
-        const streamContainerCard = document.createElement('div');
-        streamContainerCard.id = "wrapper-video-" + memberId;
-        streamContainerCard.className = 'col-stream-item transition-all-mv';
+        if (!gridLayout) return;
 
-        let videoEmbedUrl = `https://www.youtube.com/embed/live_stream?channel=${channelId}&autoplay=1&mute=1`;
+        updateActiveScannerCount();
 
-        streamContainerCard.innerHTML = `
-            <div class="video-monitor-frame-box d-flex flex-column h-100">
-                <div class="monitor-header-bar d-flex justify-content-between align-items-center">
-                    <span class="small fw-bold tracking-luxury">
-                        <i class="fab fa-youtube text-danger me-1"></i> 
-                        LIVE MONITOR: ${couganMembersData[memberId].name.toUpperCase()} POV
-                    </span>
-                    <button class="close-monitor-x-btn" onclick="closeStreamFrame('${memberId}')">&times;</button>
-                </div>
+        const currentActiveCount = Object.keys(openedActiveStreams).length;
+        gridLayout.className = "";
 
-                <div class="ratio ratio-16x9">
-                    <iframe src="${videoEmbedUrl}" 
-                            title="${memberId} stream POV" frameborder="0" 
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                            allowfullscreen></iframe>
-                </div>
-            </div>
-        `;
-
-        if (placeholder) placeholder.style.display = 'none';
-        gridLayout.appendChild(streamContainerCard);
-    } else {
-        closeStreamFrame(memberId);
+        if (currentActiveCount === 0) {
+            if (placeholder) placeholder.style.display = 'block';
+            return;
+        } else {
+            if (placeholder) placeholder.style.display = 'none';
+            gridLayout.classList.add(`layout-${currentActiveCount}`);
+        }
     }
 
-    recalculateGridResponsiveness();
-}
-
-function closeStreamFrame(memberId) {
-    if (openedActiveStreams[memberId]) delete openedActiveStreams[memberId];
-
-    const targetVideoFrame = document.getElementById("wrapper-video-" + memberId);
-    if (targetVideoFrame) targetVideoFrame.remove();
-
-    const targetBtn = document.getElementById("btn-" + memberId);
-    if (targetBtn) {
-        targetBtn.className = "btn btn-mv-toggle btn-inactive";
-        let isLiveNow = currentLiveList[memberId] ? "dot-live-red" : "";
-        targetBtn.innerHTML = `<span class="indicator-dot ${isLiveNow}" id="dot-${memberId}"></span> ${couganMembersData[memberId].name}`;
-    }
-
-    recalculateGridResponsiveness();
-}
-
-function recalculateGridResponsiveness() {
-    const gridLayout = document.getElementById('streamDynamicGridLayout');
-    const placeholder = document.getElementById('emptyGridPlaceholder');
-
-    if (!gridLayout) return;
-
-    updateActiveScannerCount();
-
-    const currentActiveCount = Object.keys(openedActiveStreams).length;
-    gridLayout.className = "";
-
-    if (currentActiveCount === 0) {
-        if (placeholder) placeholder.style.display = 'block';
-        return;
-    } else {
-        if (placeholder) placeholder.style.display = 'none';
-        gridLayout.classList.add(`layout-${currentActiveCount}`);
-    }
-}
-
-window.addEventListener('DOMContentLoaded', () => {
-    generateMemberButtons();
-    setInterval(checkAllMembersLiveStatus, 120000);
-});
+    window.addEventListener('DOMContentLoaded', () => {
+        generateMemberButtons();
+        setInterval(checkAllMembersLiveStatus, 60000);
+    });
     </script>
 </body>
 </html>
