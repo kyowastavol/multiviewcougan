@@ -15,11 +15,23 @@ export default async function handler(req, res) {
     });
 
     const html = await response.text();
-    const isLive = html.includes('"isLive":true') || html.includes('{"style":"LIVE"') || html.includes('isLiveContent":true');
+
+    // 1. Cek apakah ini live stream yang masih terjadwal (upcoming)
+    const isUpcoming = html.includes('"status":"UPCOMING"') || 
+                       html.includes('OFFLINE') || 
+                       html.includes('upcomingEvents');
+
+    // 2. Cek indikator live
+    const hasLiveTag = html.includes('"isLive":true') || 
+                       html.includes('{"style":"LIVE"') || 
+                       html.includes('isLiveContent":true');
+
+    // Murni LIVE jika punya tag live DAN BUKAN status jadwal (upcoming)
+    const isLiveNow = hasLiveTag && !isUpcoming;
 
     return res.status(200).json({
       status: 'success',
-      isLive: isLive
+      isLive: isLiveNow
     });
   } catch (error) {
     return res.status(200).json({ status: 'error', isLive: false });
