@@ -1,37 +1,43 @@
-export default async function handler(req, res) {
-  const { channelId } = req.query;
+<?php
+header('Content-Type: application/json');
 
-  if (!channelId) {
-    return res.status(400).json({ status: 'error', isLive: false });
-  }
+$channelId = isset($_GET['channelId']) ? trim($_GET['channelId']) : '';
 
-  try {
-    const url = `https://www.youtube.com/channel/${channelId}/live`;
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-        'Accept-Language': 'en-US,en;q=0.9'
-      }
-    });
-
-    const html = await response.text();
-
-    // Cek apakah murni jadwal mendatangkan/upcoming
-    const isScheduled = html.includes('"isUpcoming":true') || html.includes('"upcomingEventData"');
-
-    // Cek indikator murni live jalan
-    const isCurrentlyLive = html.includes('"isLive":true') || 
-                            html.includes('"isLiveDvrEnabled":true') || 
-                            html.includes('{"style":"LIVE"');
-
-    // Nyala merah HANYA KALAU live jalan DAN BUKAN jadwal murni
-    const finalIsLive = isCurrentlyLive && !isScheduled;
-
-    return res.status(200).json({
-      status: 'success',
-      isLive: finalIsLive
-    });
-  } catch (error) {
-    return res.status(200).json({ status: 'error', isLive: false });
-  }
+if (empty($channelId)) {
+    echo json_encode(['status' => 'error', 'message' => 'Channel ID kosong']);
+    exit;
 }
+
+// Scrape halaman live channel
+$url = "https://www.youtube.com/channel/{$channelId}/live";
+
+$ch = curl_init();
+curl_setopt($ch, CURLOPT_URL, $url);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+$html = curl_exec($ch);
+curl_close($ch);
+
+if ($html) {
+    // 1. Cari canonical URL / videoId dari canonical tag
+    if (preg_match('/<link rel="canonical" href="https:\/\/www\.youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)">/', $html, $matches)) {
+        $videoId = $matches[1];
+        
+        // 2. Verifikasi apakah video ini benar-benar sedang status "isLive"
+        if (strpos($html, '"isLive":true') !== false || strpos($html, '"isLiveContent":true') !== false || strpos($html, 'hqdefault_live.jpg') !== false) {
+            echo json_encode([
+                'status' => 'success',
+                'isLive' => true,
+                'videoId' => $videoId
+            ]);
+            exit;
+        }
+    }
+}
+
+echo json_encode([
+    'status' => 'success',
+    'isLive' => false,
+    'videoId' => null
+]);
