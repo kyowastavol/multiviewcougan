@@ -1,5 +1,4 @@
 export default async function handler(req, res) {
-    // Header CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET');
 
@@ -21,32 +20,48 @@ export default async function handler(req, res) {
 
         const html = await response.text();
 
-        // Indikator Live (Termasuk Streamlabs & OBS)
-        const isLive = html.includes('"isLive":true') ||
-                       html.includes('{"style":"LIVE"') ||
-                       html.includes('isLiveContent":true') ||
-                       html.includes('hqdefault_live.jpg');
+        // 1. Pastikan Halaman Memang Memiliki Status Live Aktif
+        const isLive = html.includes('"isLive":true') || 
+                       html.includes('"liveStreamability"') ||
+                       html.includes('{"style":"LIVE"}');
 
-        if (isLive) {
-            let videoId = null;
+        if (!isLive) {
+            return res.status(200).json({
+                status: 'success',
+                isLive: false,
+                videoId: null
+            });
+        }
 
-            // Lapisan 1: Canonical Tag (Sangat Akurat untuk Streamlabs)
+        let videoId = null;
+
+        // 2. Metode 1: Ekstrak Spesifik dari objek JSON `ytInitialPlayerResponse`
+        const playerResponseMatch = html.match(/var ytInitialPlayerResponse\s*=\s*({.+?});<\/script>/s) ||
+                                  html.match(/ytInitialPlayerResponse\s*=\s*({.+?});/s);
+
+        if (playerResponseMatch && playerResponseMatch[1]) {
+            try {
+                const playerData = JSON.parse(playerResponseMatch[1]);
+                const videoDetails = playerData?.videoDetails;
+
+                // Validasi bahwa video benar-benar milik channel tersebut & sedang LIVE
+                if (videoDetails && videoDetails.isLive && videoDetails.channelId === channelId) {
+                    videoId = videoDetails.videoId;
+                }
+            } catch (e) {
+                // Ignore JSON parse error
+            }
+        }
+
+        // 3. Metode 2 (Fallback Validasi Streamlabs/OBS): Ambil dari Canonical Watch Link
+        if (!videoId) {
             const canonicalMatch = html.match(/<link rel="canonical" href="https:\/\/www\.youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})">/);
-            
-            // Lapisan 2: Microformat Video ID
-            const microMatch = html.match(/"videoId":"([a-zA-Z0-9_-]{11})"/);
-
-            // Lapisan 3: Watch URL Pattern
-            const watchMatch = html.match(/watch\?v=([a-zA-Z0-9_-]{11})/);
-
             if (canonicalMatch && canonicalMatch[1]) {
                 videoId = canonicalMatch[1];
-            } else if (microMatch && microMatch[1]) {
-                videoId = microMatch[1];
-            } else if (watchMatch && watchMatch[1]) {
-                videoId = watchMatch[1];
             }
+        }
 
+        if (videoId) {
             return res.status(200).json({
                 status: 'success',
                 isLive: true,
